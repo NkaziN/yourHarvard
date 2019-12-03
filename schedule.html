@@ -1,0 +1,142 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Schedule
+{% endblock %}
+
+{% block main %}
+
+    <body>
+      Your concentration is {{concentrationname}}
+    </body>
+
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          {% for course in courses %}
+            <div class="card card-body" draggable="true" style="background: #FEDFE1; width: 100%" ondragstart="drag(event)" id="drag1">
+              <h6 class="card-title"> {{course.code}} </h1>
+              <p class="card-text" style = "font-size: 14px" > {{course.name}} </p>
+              <p class="card-text" style = "font-size: 14px" > {{course.instructor}} </p>
+              <p class="card-text" style = "font-size: 14px" > {{course.time}} </p>
+            </div>
+            <br>
+          {% endfor %}
+        </div>
+        <div class="col">
+          <div class = "container" style="background: #A5DEE4; width: 100%">
+            <div class = "row">
+              <div class = "col" ondrop="drop(event)" ondragover="allowDrop(event)">
+                  <br>
+                  <p>First-Year Fall</p>
+                  <br>
+                  <br>
+              </div>
+              <div class = "col" ondrop="drop(event)" ondragover="allowDrop(event)">
+                  <br>
+                  <p>First-Year Spring</p>
+                  <br>
+                  <br>
+              </div>
+            </div>
+            <div class = "row">
+              <div class = "col" ondrop="drop(event)" ondragover="allowDrop(event)">
+                  <p>Sophmore Fall</p>
+                  <br>
+              </div>
+              <div class = "col" ondrop="drop(event)" ondragover="allowDrop(event)">
+                  <p>Sophmore Spring</p>
+                  <br>
+              </div>
+            </div>
+            <div class = "row">
+              <div class = "col" ondrop="drop(event)" ondragover="allowDrop(event)">
+                  <p>Junior Fall</p>
+                  <br>
+              </div>
+              <div class = "col" ondrop="drop(event)" ondragover="allowDrop(event)">
+                  <p>Junior Spring</p>
+                  <br>
+              </div>
+            </div>
+            <div class = "row">
+              <div class = "col" ondrop="drop(event)" ondragover="allowDrop(event)">
+                  <p>Senior Fall</p>
+                  <br>
+              </div>
+              <div class = "col" ondrop="drop(event)" ondragover="allowDrop(event)">
+                  <p>Senior Spring</p>
+                  <br>
+              </div>
+            </div>
+          </div>
+          <table class="table table-striped">
+              <thead>
+                  <tr>
+                      <th scope="col">First-Year Fall</th>
+                      <th scope="col">First-Year Spring</th>
+                      <th scope="col">Sophomore Fall</th>
+                      <th scope="col">Sophomore Spring</th>
+                      <th scope="col">Junior Fall</th>
+                      <th scope="col">Junior Spring</th>
+                      <th scope="col">Senior Fall</th>
+                      <th scope="col">Senior Spring</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  <tr>
+                    <td ondragover="allowDrop(event)"></td>
+                    <td ondragover="allowDrop(event)"></td>
+                    <td ondragover="allowDrop(event)"></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                  </tr>
+              </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+{% endblock %}
