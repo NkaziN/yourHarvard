@@ -34,7 +34,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # Configure CS50 Library to use SQLite database
-db = SQL("sqlite:///yourharvardv1.db")
+db = SQL("sqlite:///yourharvard.db")
 
 # # Make sure API key is set
 # if not os.environ.get("API_KEY"):
