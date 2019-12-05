@@ -1,16 +1,11 @@
 from cs50 import SQL
+import os
 import sys
 import csv
 import json
 
-"""
-# Confirm the correct number of arguments
-if len(sys.argv) is not 2:
-    print("Usage: python import.py filename.csv")
-    sys.exit()
-"""
 # Connect to SQL database
-db = SQL("sqlite:///yourharvard.db")
+db = SQL("sqlite:////home/ubuntu/project/website/yourHarvard/yourharvard.db")
 
 """
 # ONLY UNCOMMENT THIS SECTION IF YOU WANT TO READ IN ALL NEW COURSES. NOTE THE FIRST STEP!
@@ -21,7 +16,7 @@ with open("courses.json") as json_file:
     courses = json.load(json_file)
     for course in range(len(courses)):
         # Progress Bar
-        print("Course:" course+1, "/ 9936")
+        print(course + 1, "/ 9936")
         # Retrieve all course information
         courseID = courses[course]["courseID"]
         classKey = courses[course]["classes"][0]["classKey"]
@@ -39,15 +34,16 @@ with open("courses.json") as json_file:
         location = courses[course]["classes"][0]["meetings"][0]["publishedLocation"]
         days = courses[course]["classes"][0]["meetings"][0]["days"]
         instructor = courses[course]["classes"][0]["meetings"][0]["publishedInstructors"]
-        # Bypass any missing information
+        # Bypass any missing websites
+        if website == "NOURL":
+            website = ""
+        # Bypass any missing information and reformat time
         try:
-            startTime = courses[course]["classes"][0]["meetings"][0]["startTime"]
-            endTime = courses[course]["classes"][0]["meetings"][0]["endTime"]
+            startTime = courses[course]["classes"][0]["meetings"][0]["startTime"].lstrip("0")
+            endTime = courses[course]["classes"][0]["meetings"][0]["endTime"].lstrip("0")
+            time = "%s-%s" % (startTime, endTime)
         except KeyError:
-            startTime = "TBA"
-            endTime = "TBA"
-        # Reformat course code to single cell
-        code = "%s %s" % (catalogSubject, courseNumber)
+            time = "TBA"
         # Reformat days to comma seperated list
         if days == []:
             days = "TBA"
@@ -56,16 +52,30 @@ with open("courses.json") as json_file:
         else:
             tmp = []
             for day in days:
-                tmp.append(day["day"].capitalize())
-            days = ', '.join(tmp)
+                if day["day"] == "thu":
+                    tmp.append("R")
+                elif day["day"] == "sun":
+                    tmp.append("U")
+                else:
+                    tmp.append(day["day"][0].capitalize())
+            days = ''.join(tmp)
+        # Combine day and time
+        dayTime = "%s %s" % (days, time)
+        if dayTime == "TBA TBA":
+            dayTime = "TBA"
+        # Reformat course code to single cell
+        code = "%s %s" % (catalogSubject, courseNumber)
         # Reformat instructors to commas separated list
         tmp = []
         for instructors in instructor:
-            tmp.append("%s (%s)" % (instructors['instructorName'], instructors['role'].lower().capitalize()))
+            if instructors['instructorName'] == "TBA":
+                tmp.append("TBA")
+            else:
+                tmp.append("%s (%s)" % (instructors['instructorName'], instructors['role'].lower().capitalize()))
         instructor = ', '.join(tmp)
         # Import into SQL Database
-        db.execute("INSERT INTO courses (name,code,days,semester,startTime,endTime,location,instructor,school,term,description,website,courseID,classKey,sectionNumber,bracketed,classStatus) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
-                   name, code, days, semester, startTime, endTime, location, instructor, school, term, description, website, courseID, classKey, sectionNumber, bracketed, classStatus)
+        db.execute("INSERT INTO courses (name,code,dayTime,semester,location,instructor,school,term,description,website,courseID,classKey,sectionNumber,bracketed,classStatus) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
+                   name,code,dayTime,semester,location,instructor,school,term,description,website,courseID,classKey,sectionNumber,bracketed,classStatus)
 """
 
 
@@ -83,12 +93,12 @@ with open("concentrations.csv", "r") as file:
     all_req_courses = list(csv.reader(file))
     # Loop through concentrations
     for concentration in range(len(concentrations)):
-        # Stop at the blank line
-        if concentrations[concentration] == "":
-            sys.exit()
         # Retrieve name and number of required courses
         name = concentrations[concentration]["Concentration"]
         required = concentrations[concentration]["Courses Required"]
+        # Skip any blank lines
+        if name == "" or required == "":
+            continue
         # Import into SQL Database
         db.execute("INSERT INTO concentrations (id,name, required) VALUES (?,?,?);", concentration + 1, name, required)
 
