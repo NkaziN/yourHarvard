@@ -67,9 +67,9 @@ def index():
     return render_template("index.html")
 
 
-@app.route("/concentration", methods=["GET", "POST"])
+@app.route("/schedule", methods=["GET", "POST"])
 @login_required
-def concentration():
+def schedule():
     """Get the courses for a concentration"""
     if request.method == "POST":
         concentrationname = request.form.get("ConcentrationName")
@@ -78,24 +78,26 @@ def concentration():
 
         # update the concentration that the user chose in the sql table- MODIFY
         # db.execute("UPDATE users SET cash = cash - :moneyreq WHERE id = :user_id", moneyreq=moneyreq, user_id=session['user_id'])
-        return render_template("schedule.html", concentrationname=concentrationname)
+        courses = db.execute("SELECT * FROM concentrations JOIN requirements ON concentrations.id = requirements.conc_id JOIN courses ON requirements.course_code = courses.code WHERE concentrations.name = :concentrationname;", concentrationname = concentrationname)
+
+        return render_template("schedule.html", courses = courses, concentrationname=concentrationname)
     else:
         # modify this line of code to get the names of concentrations
         names = db.execute(
             "SELECT name FROM concentrations")
         concentrations = [name["name"] for name in names]
 
-        return render_template("concentration.html", concentrations=concentrations)
+        return render_template("schedule.html", concentrations=concentrations)
 
-@app.route("/schedule")
-@login_required
-def schedule():
-    # get concentration related info
-    concentrationname = request.form.get("ConcentrationName")
-    courses = db.execute("SELECT * FROM concentrations JOIN requirements ON concentrations.id = requirements.conc_id JOIN courses ON requirements.course_code = courses.code WHERE concentrations.name = 'Anthropology';")
+# @app.route("/schedule")
+# @login_required
+# def schedule():
+#     # get concentration related info
+#     concentrationname = request.form.get("ConcentrationName")
+#     courses = db.execute("SELECT * FROM concentrations JOIN requirements ON concentrations.id = requirements.conc_id JOIN courses ON requirements.course_code = courses.code WHERE concentrations.name = 'Anthropology';")
 
-    # remember to provide context for returning pages
-    return render_template("schedule.html", courses = courses, concentrationname=concentrationname)
+#     # remember to provide context for returning pages
+#     return render_template("schedule.html", courses = courses, concentrationname=concentrationname)
 
 
 @app.route("/login", methods=["GET", "POST"])

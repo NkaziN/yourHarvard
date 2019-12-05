@@ -23,19 +23,38 @@
         <title>Your.Harvard: {% block title %}{% endblock %}</title>
 
         <script>
-        function allowDrop(ev) {
-          ev.preventDefault();
+        // function allowDrop(ev) {
+        //   ev.preventDefault();
+        // }
+
+        // function drag(ev) {
+        //   ev.dataTransfer.setData("text", ev.target.id);
+        // }
+
+        // function drop(ev) {
+        //   ev.preventDefault();
+        //   var data = ev.dataTransfer.getData("text");
+        //   ev.target.appendChild(document.getElementById(data));
+        // }
+
+        var elements = [];
+
+        function dragUser(element, event) {
+            var index = elements.indexOf(element);
+            if (index == -1) {
+                // not already existing in the array, add it now
+                elements.push(element);
+                index = elements.length - 1;
+            }
+
+            event.dataTransfer.setData('index', index);
         }
 
-        function drag(ev) {
-          ev.dataTransfer.setData("text", ev.target.id);
+        function dropUser(target, event) {
+            var element = elements[event.dataTransfer.getData('index')];
+            target.appendChild(element);
         }
 
-        function drop(ev) {
-          ev.preventDefault();
-          var data = ev.dataTransfer.getData("text");
-          ev.target.appendChild(document.getElementById(data));
-        }
         </script>
 
     </head>
@@ -50,7 +69,6 @@
             <div class="collapse navbar-collapse" id="navbar">
                 {% if session.user_id %}
                     <ul class="navbar-nav mr-auto mt-2">
-                        <li class="nav-item"><a class="nav-link" href="/concentration">Concentration</a></li>
                         <li class="nav-item"><a class="nav-link" href="/schedule">Schedule</a></li>
                     </ul>
                     <ul class="navbar-nav ml-auto mt-2">
