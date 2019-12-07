@@ -31,7 +31,7 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # Configure CS50 Library to use SQLite database
-db = SQL("sqlite:///yourharvard_test.db")
+db = SQL("sqlite:///yourharvard.db")
 
 
 @app.route("/")
@@ -57,8 +57,11 @@ def schedule():
         if not concentrationname:
             return apology("concentration name is invalid", 400)
         numbers = db.execute("SELECT required FROM concentrations WHERE name = ?;", concentrationname)
-        numreq = numbers[0]["required"]
-        print("The number of courses is", numbers)
+        # Avoid error if no courses are retrieve
+        if numbers:
+            numreq = numbers[0]["required"]
+        else:
+            numreq = ""
         courses = db.execute("SELECT * FROM concentrations JOIN requirements ON concentrations.id = requirements.conc_id JOIN courses ON requirements.course_code = courses.code WHERE concentrations.name = ?;", concentrationname)
         exceptions = db.execute("SELECT * FROM requirements WHERE course_code LIKE 'Choose%' AND requirements.conc_id IN (SELECT id FROM concentrations WHERE name = ?);", concentrationname)
         # render schedule.html with the context and all the courses for the given concentration
@@ -86,8 +89,8 @@ def courseexplorer():
             return apology("concentration name is invalid", 400)
 
         # get all the filtered courses for a concentration and display them in blocks, need to modify the table this is selecting from
-        courses = db.execute("SELECT DISTINCT * FROM concentrations JOIN explorer ON concentrations.id = explorer.conc_id JOIN courses ON explorer.course_code = courses.code WHERE explorer.name = ?;", concentrationname)
-        exceptions = db.execute("SELECT DISTINCT * FROM concentrations JOIN explorer ON concentrations.id = explorer.conc_id JOIN courses ON explorer.course_code = courses.code WHERE explorer.conc_id IN (SELECT id FROM concentrations WHERE name = ?);", concentrationname)
+        courses = db.execute("SELECT DISTINCT * FROM concentrations JOIN explorer ON concentrations.id = explorer.conc_id JOIN courses ON explorer.course_code = courses.code WHERE explorer.conc_id IN (SELECT id FROM concentrations WHERE name = ?);", concentrationname)
+        exceptions = db.execute("SELECT DISTINCT * FROM explorer WHERE explorer.course_code LIKE 'Any%' AND explorer.conc_id IN (SELECT id FROM concentrations WHERE name = ?);", concentrationname)
         numCourses = len(courses)
         return render_template("courseexplorer.html", courses = courses, concentrationname=concentrationname, concentrations=concentrations, exceptions=exceptions, numCourses=numCourses)
     else:

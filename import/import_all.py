@@ -1,5 +1,6 @@
 from cs50 import SQL
 from datetime import timedelta
+import re
 import csv
 import json
 
@@ -78,7 +79,7 @@ with open("courses.json") as json_file:
         if dayTime == "TBA TBA":
             dayTime = "TBA"
         # Reformat course code to single cell
-        code = "%s %s" % (catalogSubject, courseNumber)
+        code = ("%s %s" % (catalogSubject, courseNumber)).strip(" ")
         # Reformat instructors to commas separated list
         tmp = []
         for instructors in instructor:
@@ -86,11 +87,18 @@ with open("courses.json") as json_file:
                 tmp.append("TBA")
             elif instructors['instructorName'] == "":
                 tmp.append("TBA")
+            elif not instructors['instructorName'][0].isalpha():
+                tmp.append("TBA")
             else:
                 tmp.append("%s (%s)" % (instructors['instructorName'], instructors['role'].lower().capitalize()))
         instructor = ', '.join(tmp)
+        # Clean up html tags from the description
+        clean = re.compile('<.*?>')
+        description = re.sub(clean, '', description).replace("&nbsp;"," ").replace("  "," ").replace("&rsquo;","'").replace('&quot;','"').replace("&apos;","'")
+        clean = re.compile('&.*?;')
+        description = re.sub(clean, '', description)
         # Import into SQL Database
-        db.execute("INSERT INTO courses (name,code,dayTime,semester,location,instructor,school,term,description,website,courseID,classKey,sectionNumber,bracketed,classStatus,duration) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
+        db.execute("INSERT INTO courses (name,code,dayTime,semester,location,instructor,school,term,description,website,courseID,classKey,sectionNumber,bracketed,classStatus,duration) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
                    name,code,dayTime,semester,location,instructor,school,term,description,website,courseID,classKey,sectionNumber,bracketed,classStatus,duration)
 
 
@@ -109,16 +117,16 @@ with open("concentrations.csv", "r") as file:
     # Loop through concentrations
     for concentration in range(len(concentrations)):
         # Retrieve name and number of required courses
-        name = concentrations[concentration]["Concentration"]
-        required = concentrations[concentration]["Courses Required"]
+        name = concentrations[concentration]["Concentration"].strip(" ")
+        required = concentrations[concentration]["Courses Required"].strip(" ")
         # Skip any blank lines
         if name == "" or required == "":
             continue
         # Import into SQL Database
         db.execute("INSERT INTO concentrations (id,name, required) VALUES (?,?,?);", concentration + 1, name, required)
-
+        # Display current concentration
+        print(name)
         # Retrieve list of course requirements (from course header to first blank)
-        print(concentrations[concentration]["Concentration"])
         start = all_req_courses[0].index("Courses")
         # Avoids error when no empty cell exists
         try:
@@ -128,6 +136,7 @@ with open("concentrations.csv", "r") as file:
             cell_list = all_req_courses[concentration + 1][start:]
         # Import into SQL database
         # Each cell in the list contains 1+ courses
+        tmp_exp_courses = []
         for cell in range(len(cell_list)):
             if (cell_list[cell] == ""):
                 continue
@@ -138,29 +147,34 @@ with open("concentrations.csv", "r") as file:
                 # Requirements table
                 # If it's a list or an exception, tell them to choose a course
                 if (courses[0][0] == "!" or courses[0][0] == "*" or len(courses) > 1):
-                    req_name = "Choose a course from: " + ", ".join(courses).replace("!","").replace("*","")
+                    req_name = "Choose a course from: " + ", ".join(courses).replace("!","").replace("*","").strip(" ")
                     db.execute("INSERT INTO requirements (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, 999)
                 # Otherwise enter it as normal
                 else:
-                    req_name = courses[0].upper()
+                    req_name = courses[0].upper().strip(" ")
                     db.execute("INSERT INTO requirements (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, cell)
 
                 # Explorer table
                 for course in range(len(courses)):
                     # General exception
                     if (courses[course][0] == "!"):
-                        req_name = "Any course from: " + courses[course].replace("!","")
+                        req_name = "Any course from: " + courses[course].replace("!","").strip(" ")
                         db.execute("INSERT INTO explorer (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, 999)
                     # Department exception
                     elif (courses[course][0] == "*"):
                         dept_name = courses[course][1:]
-                        dept_matches = db.execute("SELECT code FROM courses WHERE code LIKE ?;", dept_name + "%")
-                        # Load every matching course into explorer
-                        for i in range(len(dept_matches)):
-                            req_name = dept_matches[i]["code"].upper()
-                            db.execute("INSERT INTO explorer (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, cell)
+                        # Don't load every course from the same department twice
+                        if dept_name in tmp_exp_courses:
+                            continue
+                        else:
+                            tmp_exp_courses.append(dept_name)
+                            dept_matches = db.execute("SELECT code FROM courses WHERE code LIKE ?;", dept_name + "%")
+                            # Load every matching course into explorer
+                            for i in range(len(dept_matches)):
+                                req_name = dept_matches[i]["code"].upper()
+                                db.execute("INSERT INTO explorer (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, cell)
                     # Otherwise enter it as normal
                     else:
-                        req_name = courses[course].upper()
+                        req_name = courses[course].upper().strip(" ")
                         db.execute("INSERT INTO explorer (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, cell)
 
