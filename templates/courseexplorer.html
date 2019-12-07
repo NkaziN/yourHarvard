@@ -19,13 +19,16 @@
 
     <body>
       <br>
-      Your concentration is {{concentrationname}}
+      {% if concentrationname %}
+      Your concentration is {{concentrationname}}. There are {{numCourses}}+ courses that count toward requirements (not including electives).
+      {% endif %}
       <br>
     </body>
     <br>
+
     <div class="container">
       <div class="row">
-        <div class="col">
+
           {% for course in courses %}
           <div class="card text-center" draggable="true" ondragstart="dragUser(this, event)">
             <div class="card card-body undo" style="background: #FEFFFF; width: 100%; margin: 0px"  >
@@ -45,8 +48,15 @@
           </div>
             <br>
           {% endfor %}
-        </div>
-
+          {% for exception in exceptions %}
+            <div class="card text-center" draggable="true" ondragstart="dragUser(this, event)" >
+              <div class="card card-body undo" style="background: #FEFFFF; width: 100%; margin: 0px" contenteditable="true">
+                <h6 class="card-title" style = "margin: 0px"> Elective </h1>
+		            <p class="card-text" style = "font-size: 14px; margin: 0px"  > {{exception.course_code}} </p>
+              </div>
+            </div>
+            <br>
+            {% endfor %}
 
       </div>
     </div>

@@ -24,9 +24,6 @@ def after_request(response):
     return response
 
 
-# Custom filter
-app.jinja_env.filters["usd"] = usd
-
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_FILE_DIR"] = mkdtemp()
 app.config["SESSION_PERMANENT"] = False
@@ -34,36 +31,15 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # Configure CS50 Library to use SQLite database
-db = SQL("sqlite:///yourharvard.db")
-
-# # Make sure API key is set
-# if not os.environ.get("API_KEY"):
-#     raise RuntimeError("API_KEY not set")
+db = SQL("sqlite:///yourharvard_test.db")
 
 
 @app.route("/")
 @login_required
 def index():
     """Show current plan of study"""
-    # course = db.execute("SELECT cash FROM users WHERE id = :id", id=session["user_id"])
-    # if not course:
-    #     return apology("no stock with such symbol", 400)
 
-    # stocks = db.execute(
-    #     "SELECT symbol, SUM(shares) FROM transactions WHERE user_id = :user_id GROUP BY lower(symbol) HAVING SUM(shares) != 0", user_id=session["user_id"])
-    # # get current amount of cash
-    # # cash = cash[0]['cash']
-
-    # # lookup for each stock to get the price of each stock currently - this code works
-    # for stock in stocks:
-    #     quote = lookup(stock["symbol"])
-    #     stock['symbol'] = quote['symbol']
-    #     stock["name"] = quote['name']
-    #     stock["price"] = float(quote['price'])
-    #     stock['shares'] = int(stock['SUM(shares)'])
-    #     stock['total'] = stock['SUM(shares)'] * quote['price']
-    #     grandtot = grandtot + stock['total']  # keep updating the grand total
-    # # render template with the courses selected, recall to give context to the page
+    # render template with the courses selected, recall to give context to the page
     return render_template("index.html")
 
 
@@ -72,32 +48,56 @@ def index():
 def schedule():
     """Get the courses for a concentration"""
     if request.method == "POST":
+        # get the names of concentrations
+        names = db.execute(
+            "SELECT name FROM concentrations")
+        concentrations = [name["name"] for name in names]
+        concentrationname = request.form.get("ConcentrationName")
+        # if an invalid concentration name is entered
+        if not concentrationname:
+            return apology("concentration name is invalid", 400)
+        numbers = db.execute("SELECT required FROM concentrations WHERE name = ?;", concentrationname)
+        numreq = numbers[0]["required"]
+        print("The number of courses is", numbers)
+        courses = db.execute("SELECT * FROM concentrations JOIN requirements ON concentrations.id = requirements.conc_id JOIN courses ON requirements.course_code = courses.code WHERE concentrations.name = ?;", concentrationname)
+        exceptions = db.execute("SELECT * FROM requirements WHERE course_code LIKE 'Choose%' AND requirements.conc_id IN (SELECT id FROM concentrations WHERE name = ?);", concentrationname)
+        # render schedule.html with the context and all the courses for the given concentration
+        return render_template("schedule.html", courses = courses, concentrationname=concentrationname, numreq = numreq, concentrations=concentrations, exceptions=exceptions)
+    else:
+        # get the names of concentrations
+        names = db.execute(
+            "SELECT name FROM concentrations")
+        concentrations = [name["name"] for name in names]
+        # render schedule.html with the context
+        return render_template("schedule.html", concentrations=concentrations)
+
+@app.route("/courseexplorer", methods=["GET", "POST"])
+@login_required
+def courseexplorer():
+    if request.method == "POST":
+         # get the names of concentrations and place it in the dropdown menu
+        names = db.execute(
+                "SELECT name FROM concentrations")
+        concentrations = [name["name"] for name in names]
+
+        # get the selected concentration
         concentrationname = request.form.get("ConcentrationName")
         if not concentrationname:
             return apology("concentration name is invalid", 400)
 
-        # update the concentration that the user chose in the sql table- MODIFY
-        # db.execute("UPDATE users SET cash = cash - :moneyreq WHERE id = :user_id", moneyreq=moneyreq, user_id=session['user_id'])
-        courses = db.execute("SELECT * FROM concentrations JOIN requirements ON concentrations.id = requirements.conc_id JOIN courses ON requirements.course_code = courses.code WHERE concentrations.name = :concentrationname;", concentrationname = concentrationname)
-
-        return render_template("schedule.html", courses = courses, concentrationname=concentrationname)
+        # get all the filtered courses for a concentration and display them in blocks, need to modify the table this is selecting from
+        courses = db.execute("SELECT DISTINCT * FROM concentrations JOIN explorer ON concentrations.id = explorer.conc_id JOIN courses ON explorer.course_code = courses.code WHERE explorer.name = ?;", concentrationname)
+        exceptions = db.execute("SELECT DISTINCT * FROM concentrations JOIN explorer ON concentrations.id = explorer.conc_id JOIN courses ON explorer.course_code = courses.code WHERE explorer.conc_id IN (SELECT id FROM concentrations WHERE name = ?);", concentrationname)
+        numCourses = len(courses)
+        return render_template("courseexplorer.html", courses = courses, concentrationname=concentrationname, concentrations=concentrations, exceptions=exceptions, numCourses=numCourses)
     else:
-        # modify this line of code to get the names of concentrations
+        # get the names of concentrations and place it in the dropdown menu
         names = db.execute(
-            "SELECT name FROM concentrations")
+                "SELECT name FROM concentrations")
         concentrations = [name["name"] for name in names]
 
-        return render_template("schedule.html", concentrations=concentrations)
-
-# @app.route("/schedule")
-# @login_required
-# def schedule():
-#     # get concentration related info
-#     concentrationname = request.form.get("ConcentrationName")
-#     courses = db.execute("SELECT * FROM concentrations JOIN requirements ON concentrations.id = requirements.conc_id JOIN courses ON requirements.course_code = courses.code WHERE concentrations.name = 'Anthropology';")
-
-#     # remember to provide context for returning pages
-#     return render_template("schedule.html", courses = courses, concentrationname=concentrationname)
+        # provide context for returning pages
+        return render_template("courseexplorer.html", concentrations=concentrations)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -112,11 +112,11 @@ def login():
 
         # Ensure username was submitted
         if not request.form.get("username"):
-            return apology("must provide username", 403)
+            return render_template("login.html",username="Missing!",password="Password")
 
         # Ensure password was submitted
         elif not request.form.get("password"):
-            return apology("must provide password", 403)
+            return render_template("login.html",username="Username",password="Missing!")
 
         # Query database for username
         rows = db.execute("SELECT * FROM users WHERE username = :username",
@@ -134,7 +134,7 @@ def login():
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
-        return render_template("login.html")
+        return render_template("login.html",username="Username",password="Password")
 
 
 @app.route("/logout")
@@ -153,13 +153,13 @@ def register():
     if request.method == "POST":
         # if no username is provided
         if not request.form.get("username"):
-            return apology("must provide username", 400)
+            return render_template("register.html",username="Missing!",password="Password", passwordagain = "Password(again)")
         # if no password is provided
         if not request.form.get("password"):
-            return apology("must provide password", 400)
+            return render_template("register.html",username="Username",password="Missing!", passwordagain = "Password(again)")
         # if passwords don't match up
         if request.form.get("password") != request.form.get("passwordagain"):
-            return apology("passwords don't match up", 400)
+            return render_template("register.html",username="Username",password="Password", passwordagain = "Retype!")
         # insert user into table
         username = request.form.get("username")
 
@@ -169,13 +169,13 @@ def register():
                         username=username, password=password)
         # if username is already taken
         if not id:
-            return apology("username already taken", 400)
+            return render_template("register.html",username="Taken!",password="Password", passwordagain = "Password(again)")
             # alert("username not available")
-        # return to homepage for user after register
 
+        # return to homepage for user after register
         return redirect("/")
     else:
-        return render_template("register.html")
+        return render_template("register.html",username="Username",password="Password", passwordagain = "Password(again)")
 
 
 def errorhandler(e):

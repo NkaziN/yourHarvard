@@ -1,13 +1,12 @@
 from cs50 import SQL
-import os
-import sys
+from datetime import timedelta
 import csv
 import json
 
 # Connect to SQL database
-db = SQL("sqlite:////home/ubuntu/project/website/yourHarvard/yourharvard.db")
+db = SQL("sqlite:////home/ubuntu/project/website/yourHarvard/yourharvard_test.db")
 
-"""
+
 # ONLY UNCOMMENT THIS SECTION IF YOU WANT TO READ IN ALL NEW COURSES. NOTE THE FIRST STEP!
 # Clear any existing courses in table
 db.execute("DELETE FROM courses;")
@@ -42,8 +41,23 @@ with open("courses.json") as json_file:
             startTime = courses[course]["classes"][0]["meetings"][0]["startTime"].lstrip("0")
             endTime = courses[course]["classes"][0]["meetings"][0]["endTime"].lstrip("0")
             time = "%s-%s" % (startTime, endTime)
+
+            # Split into hours and minutes
+            startTime = startTime.split(":")
+            start = timedelta(hours = int(startTime[0]), minutes = int(startTime[1][0:2]))
+            endTime = endTime.split(":")
+            end = timedelta(hours = int(endTime[0]), minutes = int(endTime[1][0:2]))
+            # Compute both possible durations (and strip off days)
+            duration1 = (str(end - start).split(","))[-1].split(":")
+            duration2 = (str(start - end).split(","))[-1].split(":")
+            # Modulo any hours larger than 12 and convert minutes
+            hours1 = int(duration1[0]) % 12 + float(duration1[1]) / 60
+            hours2 = int(duration2[0]) % 12 + float(duration1[1]) / 60
+            # Choose the minimum remaining option
+            duration = min(hours1, hours2)
         except KeyError:
             time = "TBA"
+            duration = "N/A"
         # Reformat days to comma seperated list
         if days == []:
             days = "TBA"
@@ -70,13 +84,14 @@ with open("courses.json") as json_file:
         for instructors in instructor:
             if instructors['instructorName'] == "TBA":
                 tmp.append("TBA")
+            elif instructors['instructorName'] == "":
+                tmp.append("TBA")
             else:
                 tmp.append("%s (%s)" % (instructors['instructorName'], instructors['role'].lower().capitalize()))
         instructor = ', '.join(tmp)
         # Import into SQL Database
-        db.execute("INSERT INTO courses (name,code,dayTime,semester,location,instructor,school,term,description,website,courseID,classKey,sectionNumber,bracketed,classStatus) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
-                   name,code,dayTime,semester,location,instructor,school,term,description,website,courseID,classKey,sectionNumber,bracketed,classStatus)
-"""
+        db.execute("INSERT INTO courses (name,code,dayTime,semester,location,instructor,school,term,description,website,courseID,classKey,sectionNumber,bracketed,classStatus,duration) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
+                   name,code,dayTime,semester,location,instructor,school,term,description,website,courseID,classKey,sectionNumber,bracketed,classStatus,duration)
 
 
 # Read in CSV file
@@ -85,7 +100,7 @@ with open("concentrations.csv", "r") as file:
     db.execute("DELETE FROM concentrations;")
     # Clear existing stored course requirements/exceptions
     db.execute("DELETE FROM requirements;")
-    db.execute("DELETE FROM exceptions;")
+    db.execute("DELETE FROM explorer;")
     # Store the list of concentration info
     concentrations = list(csv.DictReader(file))
     # Store the list of course requirements (file stream reset required)
@@ -119,24 +134,33 @@ with open("concentrations.csv", "r") as file:
             else:
                 # Split by comma in case courses are in cell
                 courses = cell_list[cell].split(", ")
+
+                # Requirements table
+                # If it's a list or an exception, tell them to choose a course
+                if (courses[0][0] == "!" or courses[0][0] == "*" or len(courses) > 1):
+                    req_name = "Choose a course from: " + ", ".join(courses).replace("!","").replace("*","")
+                    db.execute("INSERT INTO requirements (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, 999)
+                # Otherwise enter it as normal
+                else:
+                    req_name = courses[0].upper()
+                    db.execute("INSERT INTO requirements (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, cell)
+
+                # Explorer table
                 for course in range(len(courses)):
-                    # Check for a general exception (first cell element is !)
+                    # General exception
                     if (courses[course][0] == "!"):
-                        exception_name = courses[course][1:]
-                        db.execute("INSERT INTO exceptions (conc_id, name, category) VALUES (?,?,?);", concentration + 1, exception_name, cell)
+                        req_name = "Any course from: " + courses[course].replace("!","")
+                        db.execute("INSERT INTO explorer (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, 999)
                     # Department exception
                     elif (courses[course][0] == "*"):
                         dept_name = courses[course][1:]
-                        """
                         dept_matches = db.execute("SELECT code FROM courses WHERE code LIKE ?;", dept_name + "%")
-                        # Load every matching course into requirements
+                        # Load every matching course into explorer
                         for i in range(len(dept_matches)):
                             req_name = dept_matches[i]["code"].upper()
-                            db.execute("INSERT INTO requirements (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, cell)
-                        """
-                        exception_name = "Choose any %s course!" % (dept_name)
-                        db.execute("INSERT INTO exceptions (conc_id, name, category) VALUES (?,?,?);", concentration + 1, exception_name, cell)
-                    # Enter the course as normal
+                            db.execute("INSERT INTO explorer (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, cell)
+                    # Otherwise enter it as normal
                     else:
                         req_name = courses[course].upper()
-                        db.execute("INSERT INTO requirements (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, cell)
+                        db.execute("INSERT INTO explorer (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, cell)
+

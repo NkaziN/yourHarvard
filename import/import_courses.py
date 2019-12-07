@@ -1,13 +1,15 @@
 from cs50 import SQL
+from datetime import timedelta
 import os
 import sys
 import csv
 import json
 
+
 """WARNING: THIS SCRIPT TAKES A VERY LONG TIME TO RUN AND CLEARS THE COURSES TABLE"""
 
 # Connect to SQL database
-db = SQL("sqlite:////home/ubuntu/project/website/yourHarvard/yourharvard.db")
+db = SQL("sqlite:////home/ubuntu/project/website/yourHarvard/yourharvard_test.db")
 
 # Clear any existing courses in table
 db.execute("DELETE FROM courses;")
@@ -42,8 +44,23 @@ with open("courses.json") as json_file:
             startTime = courses[course]["classes"][0]["meetings"][0]["startTime"].lstrip("0")
             endTime = courses[course]["classes"][0]["meetings"][0]["endTime"].lstrip("0")
             time = "%s-%s" % (startTime, endTime)
+
+            # Split into hours and minutes
+            startTime = startTime.split(":")
+            start = timedelta(hours = int(startTime[0]), minutes = int(startTime[1][0:2]))
+            endTime = endTime.split(":")
+            end = timedelta(hours = int(endTime[0]), minutes = int(endTime[1][0:2]))
+            # Compute both possible durations (and strip off days)
+            duration1 = (str(end - start).split(","))[-1].split(":")
+            duration2 = (str(start - end).split(","))[-1].split(":")
+            # Modulo any hours larger than 12 and convert minutes
+            hours1 = int(duration1[0]) % 12 + float(duration1[1]) / 60
+            hours2 = int(duration2[0]) % 12 + float(duration1[1]) / 60
+            # Choose the minimum remaining option
+            duration = min(hours1, hours2)
         except KeyError:
             time = "TBA"
+            duration = "N/A"
         # Reformat days to comma seperated list
         if days == []:
             days = "TBA"
@@ -70,9 +87,11 @@ with open("courses.json") as json_file:
         for instructors in instructor:
             if instructors['instructorName'] == "TBA":
                 tmp.append("TBA")
+            elif instructors['instructorName'] == "":
+                tmp.append("TBA")
             else:
                 tmp.append("%s (%s)" % (instructors['instructorName'], instructors['role'].lower().capitalize()))
         instructor = ', '.join(tmp)
         # Import into SQL Database
-        db.execute("INSERT INTO courses (name,code,dayTime,semester,location,instructor,school,term,description,website,courseID,classKey,sectionNumber,bracketed,classStatus) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
-                   name,code,dayTime,semester,location,instructor,school,term,description,website,courseID,classKey,sectionNumber,bracketed,classStatus)
+        db.execute("INSERT INTO courses (name,code,dayTime,semester,location,instructor,school,term,description,website,courseID,classKey,sectionNumber,bracketed,classStatus,duration) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
+                   name,code,dayTime,semester,location,instructor,school,term,description,website,courseID,classKey,sectionNumber,bracketed,classStatus,duration)
