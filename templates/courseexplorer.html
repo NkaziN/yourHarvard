@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    CourseExplorer
+{% endblock %}
+
+{% block main %}
+    <form action="/courseexplorer" method="post">
+        <div class="form-group">
+            <select class="form-control" name="ConcentrationName">
+                <option disabled selected value="">Concentration Name</option>
+                {% for concentration in concentrations %}
+                    <option>{{concentration}}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button class="btn btn-outline-danger" type="submit">Submit</button>
+        <br>
+
+    <body>
+      <br>
+      Your concentration is {{concentrationname}}
+      <br>
+    </body>
+    <br>
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          {% for course in courses %}
+          <div class="card text-center" draggable="true" ondragstart="dragUser(this, event)">
+            <div class="card card-body undo" style="background: #FEFFFF; width: 100%; margin: 0px"  >
+
+              <h6 class="card-title" onclick="description()" id= {{ course.code }} style = "margin: 0px"> {{course.code}} </h1>
+		          <p class="card-text" style = "font-size: 14px; margin: 0px"  > {{course.name}} </p>
+              <p class="card-text" style = "font-size: 14px; margin: 0px" > {{course.instructor}} </p>
+              <p class="card-text" style = "font-size: 14px; margin: 0px" > {{course.dayTime}}  </p>
+              {% if course.website %}
+              <p class="card-text" style = "font-size: 14px; margin: 0px"> <a target="_blank" href= {{ course.website }}>Course Website</a></p>
+              {% endif %}
+              <details>
+                <summary>Details</summary>
+                {{ course.description }}
+              </details>
+            </div>
+          </div>
+            <br>
+          {% endfor %}
+        </div>
+
+
+      </div>
+    </div>
+
+    </form>
+{% endblock %}

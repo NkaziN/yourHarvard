@@ -6,101 +6,88 @@
 
 {% block main %}
     <form action="/schedule" method="post">
-        <div class="form-group">
-            <select class="form-control" name="ConcentrationName">
-                <option disabled selected value="">Concentration Name</option>
-                {% for concentration in concentrations %}
-                    <option>{{concentration}}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <button class="btn btn-dark" type="submit">Submit</button>
+      <div class="form-group">
+        <select class="form-control" name="ConcentrationName">
+          <option disabled selected value="">Concentration Name</option>
+            {% for concentration in concentrations %}
+              <option>{{concentration}}</option>
+            {% endfor %}
+        </select>
+      </div>
+      <button class="btn btn-outline-danger" type="submit">Submit</button>
+      <br>
+      <body>
         <br>
-
-    <body>
+        Your concentration is {{concentrationname}}
+        <br>
+      </body>
       <br>
-      Your concentration is {{concentrationname}}
-      <br>
-    </body>
-
-    <div class="container">
-      <div class="row">
-        <div class="col-md-auto">
-          {% for course in courses %}
-          <div class="card text-center" draggable="true" ondragstart="dragUser(this, event)">
-            <div class="card-header">
-              <ul class="nav nav-pills card-header-pills">
-                <li class="nav-item">
-                  <a class="nav-link active" href="#">Active</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="#">Link</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link disabled" href="#">Disabled</a>
-                </li>
-              </ul>
+      <div class="container">
+        <div class="row">
+          <div class="col-md-auto">
+            {% for course in courses %}
+            <div class="card text-center" draggable="true" ondragstart="dragUser(this, event)" >
+              <div class="card card-body undo" style="background: #FEFFFF; width: 100%; margin: 0px" contenteditable="true">
+                <h6 class="card-title" style = "margin: 0px"> {{course.code}} </h1>
+		            <p class="card-text" style = "font-size: 14px; margin: 0px"  > {{course.name}} </p>
+                <p class="card-text" style = "font-size: 14px; margin: 0px"> {{course.instructor}} </p>
+                <p class="card-text" style = "font-size: 14px; margin: 0px"> {{course.dayTime}}  </p>
+              </div>
+              <div class="card-footer">
+                {% if course.website %}
+                <p class="card-text" style = "font-size: 14px; margin: 0px"> <a target="_blank" href= {{ course.website }}>Course Website</a></p>
+                {% endif %}
+              </div>
             </div>
-
-            <div class="card card-body undo" style="background: #FEFFFF; width: 100%; margin: 0px"  >
-              <h6 class="card-title" style = "margin: 0px"> {{course.code}} </h1>
-		          <p class="card-text" style = "font-size: 14px; margin: 0px"  > {{course.name}} </p>
-              <p class="card-text" style = "font-size: 14px; margin: 0px" > {{course.instructor}} </p>
-              <p class="card-text" style = "font-size: 14px; margin: 0px" > {{course.dayTime}}  </p>
-            </div>
-          </div>
             <br>
-          {% endfor %}
-        </div>
-        <div class="col ">
-          <div class = "container" style="background: #DEF2F1; width: 100%">
-            <div class = "row">
-              <div class = "col" ondrop="dropUser(this, event)" ondragenter="return false" ondragover="return false">
+            {% endfor %}
+          </div>
+
+          <div class="col">
+            <div class = "container" style="background: #FFCCBC; width: 100%">
+              <div class = "row">
+                <div class = "col" ondrop="dropUser(this, event)" ondragenter="return false" ondragover="return false">
                   <br>
                   <p>First-Year Fall</p>
-                  <br>
-                  <br>
-              </div>
-              <div class = "col" ondrop="dropUser(this, event)" ondragenter="return false" ondragover="return false">
+                </div>
+                <div class = "col" ondrop="dropUser(this, event)" ondragenter="return false" ondragover="return false">
                   <br>
                   <p>First-Year Spring</p>
-                  <br>
-                  <br>
+                </div>
               </div>
-            </div>
-            <div class = "row">
-              <div class = "col" ondrop="dropUser(this, event)" ondragenter="return false" ondragover="return false">
+              <div class = "row">
+                <div class = "col" ondrop="dropUser(this, event)" ondragenter="return false" ondragover="return false">
+                  <br>
                   <p>Sophomore Fall</p>
+                </div>
+                <div class = "col" ondrop="dropUser(this, event)" ondragenter="return false" ondragover="return false">
                   <br>
-              </div>
-              <div class = "col" ondrop="dropUser(this, event)" ondragenter="return false" ondragover="return false">
                   <p>Sophomore Spring</p>
-                  <br>
+                </div>
               </div>
-            </div>
-            <div class = "row">
-              <div class = "col" ondrop="dropUser(this, event)" ondragenter="return false" ondragover="return false">
+              <div class = "row">
+                <div class = "col" ondrop="dropUser(this, event)" ondragenter="return false" ondragover="return false">
+                  <br>
                   <p>Junior Fall</p>
+                </div>
+                <div class = "col" ondrop="dropUser(this, event)" ondragenter="return false" ondragover="return false">
                   <br>
-              </div>
-              <div class = "col" ondrop="dropUser(this, event)" ondragenter="return false" ondragover="return false">
                   <p>Junior Spring</p>
-                  <br>
+                </div>
               </div>
-            </div>
-            <div class = "row">
-              <div class = "col" ondrop="dropUser(this, event)" ondragenter="return false" ondragover="return false">
+              <div class = "row">
+                <div class = "col" ondrop="dropUser(this, event)" ondragenter="return false" ondragover="return false">
+                  <br>
                   <p>Senior Fall</p>
+                </div>
+                <div class = "col" ondrop="dropUser(this, event)" ondragenter="return false" ondragover="return false">
                   <br>
-              </div>
-              <div class = "col" ondrop="dropUser(this, event)" ondragenter="return false" ondragover="return false">
                   <p>Senior Spring</p>
-                  <br>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
     </form>
 {% endblock %}
