@@ -37,13 +37,13 @@ with open("courses.json") as json_file:
         # Bypass any missing websites
         if website == "NOURL":
             website = ""
-        # Bypass any missing information and reformat time
+        # Bypass any missing informationerror while reformatting time and calculating course duration
         try:
             startTime = courses[course]["classes"][0]["meetings"][0]["startTime"].lstrip("0")
             endTime = courses[course]["classes"][0]["meetings"][0]["endTime"].lstrip("0")
             time = "%s-%s" % (startTime, endTime)
 
-            # Split into hours and minutes
+            # Split into hours and minutes for duration calculation
             startTime = startTime.split(":")
             start = timedelta(hours = int(startTime[0]), minutes = int(startTime[1][0:2]))
             endTime = endTime.split(":")
@@ -83,11 +83,7 @@ with open("courses.json") as json_file:
         # Reformat instructors to commas separated list
         tmp = []
         for instructors in instructor:
-            if instructors['instructorName'] == "TBA":
-                tmp.append("TBA")
-            elif instructors['instructorName'] == "":
-                tmp.append("TBA")
-            elif not instructors['instructorName'][0].isalpha():
+            if instructors['instructorName'] == "TBA" or instructors['instructorName'] == "" or not instructors['instructorName'][0].isalpha():
                 tmp.append("TBA")
             else:
                 tmp.append("%s (%s)" % (instructors['instructorName'], instructors['role'].lower().capitalize()))
@@ -136,7 +132,7 @@ with open("concentrations.csv", "r") as file:
             cell_list = all_req_courses[concentration + 1][start:]
         # Import into SQL database
         # Each cell in the list contains 1+ courses
-        tmp_exp_courses = []
+        tmp_exp_courses = [] # Used later so we only import a department once
         for cell in range(len(cell_list)):
             if (cell_list[cell] == ""):
                 continue
@@ -145,7 +141,7 @@ with open("concentrations.csv", "r") as file:
                 courses = cell_list[cell].split(", ")
 
                 # Requirements table
-                # If it's a list or an exception, tell them to choose a course
+                # If it's a list of courses or an exception, tell them to choose a course
                 if (courses[0][0] == "!" or courses[0][0] == "*" or len(courses) > 1):
                     req_name = "Choose a course from: " + ", ".join(courses).replace("!","").replace("*","").strip(" ")
                     db.execute("INSERT INTO requirements (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, 999)

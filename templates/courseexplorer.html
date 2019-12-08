@@ -35,7 +35,7 @@
 
           {% for course in courses %}
           <div class="explorer_card card text-center" draggable="true" ondragstart="dragUser(this, event)">
-            <div class="explorer_card_body card card-body undo" style="width: 200px; margin: 0px"  >
+            <div class="explorer_card_body card card-body undo" style="width: 250px; margin: 0px"  >
 
               <h6 class="card-title" onclick="description()" id= {{ course.code }} style = "margin: 0px"> {{course.code}} </h1>
 		          <p class="card-text" style = "font-size: 14px; margin: 0px"  > {{course.name}} </p>
@@ -55,7 +55,7 @@
           {% endfor %}
           {% for exception in exceptions %}
             <div class="explorer_card card text-center" draggable="true" ondragstart="dragUser(this, event)" >
-              <div class="explorer_card_body card card-body undo" style="width: 200px; margin: 0px" contenteditable="true">
+              <div class="explorer_card_body card card-body undo" style="width: 250px; margin: 0px" contenteditable="true">
                 <h6 class="card-title" style = "margin: 0px"> Elective </h1>
 		            <p class="card-text" style = "font-size: 14px; margin: 0px"  > {{exception.course_code}} </p>
               </div>

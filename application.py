@@ -55,7 +55,7 @@ def schedule():
         concentrationname = request.form.get("ConcentrationName")
         # if an invalid concentration name is entered
         if not concentrationname:
-            return apology("concentration name is invalid", 400)
+            return render_template("schedule.html", concentrations=concentrations)
         numbers = db.execute("SELECT required FROM concentrations WHERE name = ?;", concentrationname)
         # Avoid error if no courses are retrieve
         if numbers:
@@ -86,7 +86,7 @@ def courseexplorer():
         # get the selected concentration
         concentrationname = request.form.get("ConcentrationName")
         if not concentrationname:
-            return apology("concentration name is invalid", 400)
+            return render_template("courseexplorer.html", concentrations=concentrations)
 
         # get all the filtered courses for a concentration and display them in blocks, need to modify the table this is selecting from
         courses = db.execute("SELECT DISTINCT * FROM concentrations JOIN explorer ON concentrations.id = explorer.conc_id JOIN courses ON explorer.course_code = courses.code WHERE explorer.conc_id IN (SELECT id FROM concentrations WHERE name = ?);", concentrationname)
@@ -127,7 +127,7 @@ def login():
 
         # Ensure username exists and password is correct
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
-            return apology("invalid username and/or password", 403)
+            return render_template("login.html",username="Please",password="Retry")
 
         # Remember which user has logged in
         session["user_id"] = rows[0]["id"]
@@ -163,18 +163,17 @@ def register():
         # if passwords don't match up
         if request.form.get("password") != request.form.get("passwordagain"):
             return render_template("register.html",username="Username",password="Password", passwordagain = "Retype!")
-        # insert user into table
+        # Retrieve submitted data
         username = request.form.get("username")
-
         password = generate_password_hash(request.form.get("password"))
-        # password = hash(request.form.get("password"))
-        id = db.execute("INSERT INTO users (username, hash) VALUES (:username,:password)",
-                        username=username, password=password)
-        # if username is already taken
-        if not id:
+        # Check to see if username is taken
+        taken = db.execute("SELECT * FROM users WHERE username = ?", username)
+        if taken:
             return render_template("register.html",username="Taken!",password="Password", passwordagain = "Password(again)")
-            # alert("username not available")
-
+        else:
+            # Insert a new user
+            db.execute("INSERT INTO users (username, hash) VALUES (:username,:password)",
+                        username=username, password=password)
         # return to homepage for user after register
         return redirect("/")
     else:

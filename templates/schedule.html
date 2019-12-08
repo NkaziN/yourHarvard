@@ -23,11 +23,15 @@
         {% elif concentrationname %}
         Your concentration is <b>{{concentrationname}}</b>. There were no courses found.
         {% endif %}
+
+
+
       </body>
       <br>
+
       <div class="container">
         <div class="row">
-          <div class="col-md-auto">
+          <div class="col-md-auto" id="col-md-auto">
             {% if courses %}
             {% for course in courses %}
             <div class="card text-center" draggable="true" ondragstart="dragUser(this, event)" >
