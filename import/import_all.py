@@ -7,7 +7,7 @@ import json
 # Connect to SQL database
 db = SQL("sqlite:////home/ubuntu/project/website/yourHarvard/yourharvard_test.db")
 
-"""
+
 # ONLY UNCOMMENT THIS SECTION IF YOU WANT TO READ IN ALL NEW COURSES. NOTE THE FIRST STEP!
 # Clear any existing courses in table
 db.execute("DELETE FROM courses;")
@@ -45,9 +45,9 @@ with open("courses.json") as json_file:
 
             # Split into hours and minutes for duration calculation
             startTime = startTime.split(":")
-            start = timedelta(hours = int(startTime[0]), minutes = int(startTime[1][0:2]))
+            start = timedelta(hours=int(startTime[0]), minutes=int(startTime[1][0:2]))
             endTime = endTime.split(":")
-            end = timedelta(hours = int(endTime[0]), minutes = int(endTime[1][0:2]))
+            end = timedelta(hours=int(endTime[0]), minutes=int(endTime[1][0:2]))
             # Compute both possible durations (and strip off days)
             duration1 = (str(end - start).split(","))[-1].split(":")
             duration2 = (str(start - end).split(","))[-1].split(":")
@@ -90,13 +90,14 @@ with open("courses.json") as json_file:
         instructor = ', '.join(tmp)
         # Clean up html tags from the description
         clean = re.compile('<.*?>')
-        description = re.sub(clean, '', description).replace("&nbsp;"," ").replace("  "," ").replace("&rsquo;","'").replace('&quot;','"').replace("&apos;","'")
+        description = re.sub(clean, '', description).replace("&nbsp;", " ").replace(
+            "  ", " ").replace("&rsquo;", "'").replace('&quot;', '"').replace("&apos;", "'")
         clean = re.compile('&.*?;')
         description = re.sub(clean, '', description)
         # Import into SQL Database
         db.execute("INSERT INTO courses (name,code,dayTime,semester,location,instructor,school,term,description,website,courseID,classKey,sectionNumber,bracketed,classStatus,duration) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
-                   name,code,dayTime,semester,location,instructor,school,term,description,website,courseID,classKey,sectionNumber,bracketed,classStatus,duration)
-"""
+                   name, code, dayTime, semester, location, instructor, school, term, description, website, courseID, classKey, sectionNumber, bracketed, classStatus, duration)
+
 
 # Read in CSV file
 with open("concentrations.csv", "r") as file:
@@ -132,7 +133,7 @@ with open("concentrations.csv", "r") as file:
             cell_list = all_req_courses[concentration + 1][start:]
         # Import into SQL database
         # Each cell in the list contains 1+ courses
-        tmp_exp_courses = [] # Used later so we only import a department once
+        tmp_exp_courses = []  # Used later so we only import a department once
         for cell in range(len(cell_list)):
             if (cell_list[cell] == ""):
                 continue
@@ -143,19 +144,22 @@ with open("concentrations.csv", "r") as file:
                 # Requirements table
                 # If it's a list of courses or an exception, tell them to choose a course
                 if (courses[0][0] == "!" or courses[0][0] == "*" or len(courses) > 1):
-                    req_name = "Choose a course from: " + ", ".join(courses).replace("!","").replace("*","").strip(" ")
-                    db.execute("INSERT INTO requirements (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, 999)
+                    req_name = "Choose a course from: " + ", ".join(courses).replace("!", "").replace("*", "").strip(" ")
+                    db.execute("INSERT INTO requirements (course_code, conc_id, category) VALUES (?,?,?);",
+                               req_name, concentration + 1, 999)
                 # Otherwise enter it as normal
                 else:
                     req_name = courses[0].upper().strip(" ")
-                    db.execute("INSERT INTO requirements (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, cell)
+                    db.execute("INSERT INTO requirements (course_code, conc_id, category) VALUES (?,?,?);",
+                               req_name, concentration + 1, cell)
 
                 # Explorer table
                 for course in range(len(courses)):
                     # General exception
                     if (courses[course][0] == "!"):
-                        req_name = "Any course from: " + courses[course].replace("!","").strip(" ")
-                        db.execute("INSERT INTO explorer (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, 999)
+                        req_name = "Any course from: " + courses[course].replace("!", "").strip(" ")
+                        db.execute("INSERT INTO explorer (course_code, conc_id, category) VALUES (?,?,?);",
+                                   req_name, concentration + 1, 999)
                     # Department exception
                     elif (courses[course][0] == "*"):
                         dept_name = courses[course][1:]
@@ -168,9 +172,11 @@ with open("concentrations.csv", "r") as file:
                             # Load every matching course into explorer
                             for i in range(len(dept_matches)):
                                 req_name = dept_matches[i]["code"].upper()
-                                db.execute("INSERT INTO explorer (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, cell)
+                                db.execute("INSERT INTO explorer (course_code, conc_id, category) VALUES (?,?,?);",
+                                           req_name, concentration + 1, cell)
                     # Otherwise enter it as normal
                     else:
                         req_name = courses[course].upper().strip(" ")
-                        db.execute("INSERT INTO explorer (course_code, conc_id, category) VALUES (?,?,?);", req_name, concentration + 1, cell)
+                        db.execute("INSERT INTO explorer (course_code, conc_id, category) VALUES (?,?,?);",
+                                   req_name, concentration + 1, cell)
 
