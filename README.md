@@ -1,4 +1,5 @@
 # yourHarvard
+Thanks for using your.Harvard, our four-year-course planner! Built with love by Eva Cai and Nkazi Nchinda. © 2019.
 
 # Webscraper
 Though this didn't end up being utilized for the final project, the /scraper folder contains a web scraper designed
