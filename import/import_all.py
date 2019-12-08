@@ -7,7 +7,7 @@ import json
 # Connect to SQL database
 db = SQL("sqlite:////home/ubuntu/project/website/yourHarvard/yourharvard_test.db")
 
-
+"""
 # ONLY UNCOMMENT THIS SECTION IF YOU WANT TO READ IN ALL NEW COURSES. NOTE THE FIRST STEP!
 # Clear any existing courses in table
 db.execute("DELETE FROM courses;")
@@ -96,7 +96,7 @@ with open("courses.json") as json_file:
         # Import into SQL Database
         db.execute("INSERT INTO courses (name,code,dayTime,semester,location,instructor,school,term,description,website,courseID,classKey,sectionNumber,bracketed,classStatus,duration) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);",
                    name,code,dayTime,semester,location,instructor,school,term,description,website,courseID,classKey,sectionNumber,bracketed,classStatus,duration)
-
+"""
 
 # Read in CSV file
 with open("concentrations.csv", "r") as file:

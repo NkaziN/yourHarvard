@@ -1,7 +1,6 @@
 # yourHarvard
 
 
-
 # Importing myHarvard Course Information (courses table)
 Since the project is a course planner, it relies heavily on course information. We approached this in two ways.
 First, we developed a program to log into my.harvard and manually retrieve course information. Though simply logging into
@@ -56,8 +55,8 @@ First, we had to retrieve the required courses for every concentration. This tas
 and concentration names were entered into a csv file. The syntax of the csv file is as follows:
 Each row refers to one concentration. Concentration name and the number of required courses are plaintext.
 Each cell refers to a different requirement. If multiple courses fulfill a requirement, they go in one cell with comma separation.
-Sometimes a requirement is vague, rather than a specific course. This is indicated by a ! before the text
-Sometime a requirement calls for a whole department. This is indicated by a * before the department name
+Sometimes a requirement is vague, rather than a specific course. This is indicated by a ! before the text.
+Sometime a requirement calls for a whole department. This is indicated by a * before the department name.
 
 Concentrations Table
 This information was all stored as plaintext in the csv, and easily accessible from the concentration sites. It was stored with
@@ -98,7 +97,8 @@ These cards can be dragged onto the table, which is a labeled container storing 
 will resize dynamically as items are added.
 
 We realized that people may want to edit the course cards, to add new details, or the elective cards, to specify
-which course they actually plan on taking. For this reason, the card bodies were made editable in CSS.
+which course they actually plan on taking. For this reason, the card bodies were made editable in CSS; the card footer that
+includes the website stays the same.
 
 
 # Course Explorer
@@ -115,4 +115,13 @@ courses.
 The sheer number of courses can make this page overwhelming, so the current card will change color on hover. This
 ensures that you always can find your mouse pointer, and it's obvious where your attention should be. Each card
 also features an HTML details field that displays a short course description.
+
+# References
+code for unique drag and drop ids: http://jsfiddle.net/nR4YW/
+color schemes: https://visme.co/blog/website-color-schemes/
+bootstrap grid system: https://getbootstrap.com/docs/4.0/layout/grid/
+buttons: https://getbootstrap.com/docs/4.3/components/buttons/
+cards: https://getbootstrap.com/docs/4.0/components/card/#titles-text-and-links
+editable text: https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Editable_content
+other drag and drop: https://www.w3schools.com/html/html5_draganddrop.asp
 

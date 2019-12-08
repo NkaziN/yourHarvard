@@ -1,7 +1,7 @@
 # yourHarvard
-Thanks for using your.Harvard, our four-year-course planner! Built with love by Eva Cai and Nkazi Nchinda. © 2019.
+Thanks for using your.Harvard, our four-year-course planner! Built with love by Eva Cai and Nkazi Nchinda. ©2019.
 
-# Webscraper
+# Web scraper
 Though this didn't end up being utilized for the final project, the /scraper folder contains a web scraper designed
 to extract course data from my.harvard and save it in a csv. To run the program, you will first need to follow the
 selenium webdriver installation instructions at https://selenium.dev/. Feel free to set the USERNAME and PASSWORD
