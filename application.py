@@ -62,10 +62,12 @@ def schedule():
             numreq = numbers[0]["required"]
         else:
             numreq = ""
-        courses = db.execute("SELECT * FROM concentrations JOIN requirements ON concentrations.id = requirements.conc_id JOIN courses ON requirements.course_code = courses.code WHERE concentrations.name = ?;", concentrationname)
-        exceptions = db.execute("SELECT * FROM requirements WHERE course_code LIKE 'Choose%' AND requirements.conc_id IN (SELECT id FROM concentrations WHERE name = ?);", concentrationname)
+        courses = db.execute(
+            "SELECT * FROM concentrations JOIN requirements ON concentrations.id = requirements.conc_id JOIN courses ON requirements.course_code = courses.code WHERE concentrations.name = ?;", concentrationname)
+        exceptions = db.execute(
+            "SELECT * FROM requirements WHERE course_code LIKE 'Choose%' AND requirements.conc_id IN (SELECT id FROM concentrations WHERE name = ?);", concentrationname)
         # render schedule.html with the context and all the courses for the given concentration
-        return render_template("schedule.html", courses = courses, concentrationname=concentrationname, numreq = numreq, concentrations=concentrations, exceptions=exceptions)
+        return render_template("schedule.html", courses=courses, concentrationname=concentrationname, numreq=numreq, concentrations=concentrations, exceptions=exceptions)
     else:
         # get the names of concentrations
         names = db.execute(
@@ -74,13 +76,14 @@ def schedule():
         # render schedule.html with the context
         return render_template("schedule.html", concentrations=concentrations)
 
+
 @app.route("/courseexplorer", methods=["GET", "POST"])
 @login_required
 def courseexplorer():
     if request.method == "POST":
          # get the names of concentrations and place it in the dropdown menu
         names = db.execute(
-                "SELECT name FROM concentrations")
+            "SELECT name FROM concentrations")
         concentrations = [name["name"] for name in names]
 
         # get the selected concentration
@@ -90,13 +93,14 @@ def courseexplorer():
 
         # get all the filtered courses for a concentration and display them in blocks, need to modify the table this is selecting from
         courses = db.execute("SELECT DISTINCT * FROM concentrations JOIN explorer ON concentrations.id = explorer.conc_id JOIN courses ON explorer.course_code = courses.code WHERE explorer.conc_id IN (SELECT id FROM concentrations WHERE name = ?);", concentrationname)
-        exceptions = db.execute("SELECT DISTINCT * FROM explorer WHERE explorer.course_code LIKE 'Any%' AND explorer.conc_id IN (SELECT id FROM concentrations WHERE name = ?);", concentrationname)
+        exceptions = db.execute(
+            "SELECT DISTINCT * FROM explorer WHERE explorer.course_code LIKE 'Any%' AND explorer.conc_id IN (SELECT id FROM concentrations WHERE name = ?);", concentrationname)
         numCourses = len(courses)
-        return render_template("courseexplorer.html", courses = courses, concentrationname=concentrationname, concentrations=concentrations, exceptions=exceptions, numCourses=numCourses)
+        return render_template("courseexplorer.html", courses=courses, concentrationname=concentrationname, concentrations=concentrations, exceptions=exceptions, numCourses=numCourses)
     else:
         # get the names of concentrations and place it in the dropdown menu
         names = db.execute(
-                "SELECT name FROM concentrations")
+            "SELECT name FROM concentrations")
         concentrations = [name["name"] for name in names]
 
         # provide context for returning pages
@@ -115,11 +119,11 @@ def login():
 
         # Ensure username was submitted
         if not request.form.get("username"):
-            return render_template("login.html",username="Missing!",password="Password")
+            return render_template("login.html", username="Missing!", password="Password")
 
         # Ensure password was submitted
         elif not request.form.get("password"):
-            return render_template("login.html",username="Username",password="Missing!")
+            return render_template("login.html", username="Username", password="Missing!")
 
         # Query database for username
         rows = db.execute("SELECT * FROM users WHERE username = :username",
@@ -127,7 +131,7 @@ def login():
 
         # Ensure username exists and password is correct
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
-            return render_template("login.html",username="Please",password="Retry")
+            return render_template("login.html", username="Please", password="Retry")
 
         # Remember which user has logged in
         session["user_id"] = rows[0]["id"]
@@ -137,7 +141,7 @@ def login():
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
-        return render_template("login.html",username="Username",password="Password")
+        return render_template("login.html", username="Username", password="Password")
 
 
 @app.route("/logout")
@@ -150,34 +154,35 @@ def logout():
     # Redirect user to login form
     return redirect("/")
 
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
     """Register user"""
     if request.method == "POST":
         # if no username is provided
         if not request.form.get("username"):
-            return render_template("register.html",username="Missing!",password="Password", passwordagain = "Password(again)")
+            return render_template("register.html", username="Missing!", password="Password", passwordagain="Password(again)")
         # if no password is provided
         if not request.form.get("password"):
-            return render_template("register.html",username="Username",password="Missing!", passwordagain = "Password(again)")
+            return render_template("register.html", username="Username", password="Missing!", passwordagain="Password(again)")
         # if passwords don't match up
         if request.form.get("password") != request.form.get("passwordagain"):
-            return render_template("register.html",username="Username",password="Password", passwordagain = "Retype!")
+            return render_template("register.html", username="Username", password="Password", passwordagain="Retype!")
         # Retrieve submitted data
         username = request.form.get("username")
         password = generate_password_hash(request.form.get("password"))
         # Check to see if username is taken
         taken = db.execute("SELECT * FROM users WHERE username = ?", username)
         if taken:
-            return render_template("register.html",username="Taken!",password="Password", passwordagain = "Password(again)")
+            return render_template("register.html", username="Taken!", password="Password", passwordagain="Password(again)")
         else:
             # Insert a new user
             db.execute("INSERT INTO users (username, hash) VALUES (:username,:password)",
-                        username=username, password=password)
+                       username=username, password=password)
         # return to homepage for user after register
         return redirect("/")
     else:
-        return render_template("register.html",username="Username",password="Password", passwordagain = "Password(again)")
+        return render_template("register.html", username="Username", password="Password", passwordagain="Password(again)")
 
 
 def errorhandler(e):
