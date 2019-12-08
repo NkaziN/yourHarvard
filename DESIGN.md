@@ -1,21 +1,33 @@
 # yourHarvard
 
+
+
 # Importing myHarvard Course Information (courses table)
 Since the project is a course planner, it relies heavily on course information. We approached this in two ways.
-First, we developed a program to log into my.harvard and manually retrieve course information. The program is still
-preserved in the /scraper folder, but has since been retired in favor of the json provided by CS50. Course importation
-is the first portion of the import_all.py script. Typically, new imports go directly to a test database, so multiple
-people can continue using the site as data is updated.
+First, we developed a program to log into my.harvard and manually retrieve course information. Though simply logging into
+a website from the command line is rather straightforward, bypassing Duo Two-Factor Authentication proved to be a challenge.
+The scraper gets around this using selenium, a web browser driver, which allows the user to manually login on a visual browser
+before scraping data. We wanted to make the process as automated as possible, so the user can enter their username, password,
+and the number of pages to scrape directly into the top of the script. After submitting the user's login info, the program
+waits at the authentication page for the user to manually enter the Duo Authentication code or respond to a push. Afterwards,
+the page visits the URL matching the search query for all FAS courses. HUIT passes the page number via GET, which makes it
+easy to increment the page by changing the URL. After visiting each page, the program retrieves all data and immediately writes
+it to file. This ensures that the data is stored, even if there is an error later on. Since the program is continually writing
+more course data, the export is set to append, rather than "w+". File encoding is done in utf-8 since certain Arabic courses
+have non-ASCII characters in their course descriptions, leading to errors. This program is still preserved in the /scraper
+folder, but has since been retired in favor of the json provided by CS50.
 
-After reading in course information, every single piece of data stored in the json is retrieved for each course
-(even data that is not currently being utilized for some functionality). As data is retrieved for each course, the
-progress is printed to terminal for easy monitoring. After all fields have been retrieved, a few undergo further processing.
-The website field replaces "NOURL" with an empty string, to make it easy to identify which courses are lacking a site.
-This allows us to merely ask whether website == NULL, rather than specifying a string. The course times are reformatted
-for easy readability (rather than leaving them as "startTime" and "endTime"), which makes the HTML code simpler.
-The duration calculation is rather involved. After separating the times into hours and minutes, the times are subtracted
-from one another in both directions. The resulting times are modulod by 12, and the smallest value is saved as the course
-duration. If any time information is missing, both the times and duration are saved as TBA.
+We store course data using import_all.py and n is the first portion of the script. Typically, new imports go directly to a
+test database, so multiple people can continue using the site as data is updated. After reading in course information, every
+single piece of data stored in the json is retrieved for each course (even data that is not currently being utilized for
+some functionality). As data is retrieved for each course, the progress is printed to terminal for easy monitoring. After all
+fields have been retrieved, a few undergo further processing. The website field replaces "NOURL" with an empty string, to make
+it easy to identify which courses are lacking a site. This allows us to merely ask whether website == NULL, rather than
+specifying a string. The course times are reformatted for easy readability (rather than leaving them as "startTime" and
+"endTime"), which makes the HTML code simpler. The duration calculation is rather involved. After separating the times into
+hours and minutes, the times are subtracted from one another in both directions. The resulting times are modulod by 12, and
+the smallest value is saved as the course duration. If any time information is missing, both the times and duration are
+saved as TBA.
 
 We chose to do a significant amount of manipulation in python to simplify the HTML code as much as possible. For example,
 the times are converted into the desired display format in python, to avoid potential errors due to missing data.
@@ -48,7 +60,7 @@ Sometimes a requirement is vague, rather than a specific course. This is indicat
 Sometime a requirement calls for a whole department. This is indicated by a * before the department name
 
 Concentrations Table
-This information was all stored as plaintext, and easily accessible from the concentration sites. It was stored with
+This information was all stored as plaintext in the csv, and easily accessible from the concentration sites. It was stored with
 no additional processing. Spaces were stripped from the ends of the name to avoid entry errors.
 
 Requirements Table

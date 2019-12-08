@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import Select
 
 USERNAME = input("Username:")
 PASSWORD = input("Password:")
+num_pages = 363
 
 # Launch Chrome
 driver = webdriver.Chrome()
@@ -26,7 +27,7 @@ while "Duo" in driver.title:
 
 # Scrape site data
 """This is where you enter how many pages there are"""
-for page in range(363):
+for page in range(num_pages):
 	# Access course page
 	URL = "https://portal.my.harvard.edu/psp/hrvihprd/EMPLOYEE/EMPL/h/?tab=HU_CLASS_SEARCH&SearchReqJSON=%7B%22ExcludeBracketed%22%3Atrue%2C%22SaveRecent%22%3Atrue%2C%22Facets%22%3A%5B%5D%2C%22PageNumber%22%3A" + str(page + 1) + "%2C%22SortOrder%22%3A%5B%22IS_SCL_SUBJ_CAT%22%5D%2C%22TopN%22%3A%22%22%2C%22PageSize%22%3A%22%22%2C%22SearchText%22%3A%22*%22%7D"
 	driver.get(URL)
